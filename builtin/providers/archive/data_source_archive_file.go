@@ -14,6 +14,9 @@ import (
 )
 
 func dataSourceFile() *schema.Resource {
+	var additionalFilesDefault []interface{}
+	var excludedFilesDefault []interface{}
+
 	return &schema.Resource{
 		Read: dataSourceFileRead,
 
@@ -46,6 +49,22 @@ func dataSourceFile() *schema.Resource {
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"source_content", "source_content_filename", "source_file"},
+			},
+			"additional_files": {
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				ForceNew: true,
+				Optional: true,
+				Default:  additionalFilesDefault,
+				Set:      schema.HashString,
+			},
+			"exclude_files": {
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				ForceNew: true,
+				Optional: true,
+				Default:  excludedFilesDefault,
+				Set:      schema.HashString,
 			},
 			"output_path": &schema.Schema{
 				Type:     schema.TypeString,
@@ -118,7 +137,10 @@ func archive(d *schema.ResourceData) error {
 	}
 
 	if dir, ok := d.GetOk("source_dir"); ok {
-		if err := archiver.ArchiveDir(dir.(string)); err != nil {
+		additionalFiles := d.Get("additional_files").(*schema.Set).List()
+		excludedFiles := d.Get("excluded_files").(*schema.Set).List()
+
+		if err := archiver.ArchiveDir(dir.(string), additionalFiles, excludedFiles); err != nil {
 			return fmt.Errorf("error archiving directory: %s", err)
 		}
 	} else if file, ok := d.GetOk("source_file"); ok {

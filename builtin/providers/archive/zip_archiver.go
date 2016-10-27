@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"golang.org/x/tools/go/gcimporter15/testdata"
 )
 
 type ZipArchiver struct {
@@ -49,7 +50,7 @@ func (a *ZipArchiver) ArchiveFile(infilename string) error {
 	return a.ArchiveContent(content, fi.Name())
 }
 
-func (a *ZipArchiver) ArchiveDir(indirname string) error {
+func (a *ZipArchiver) ArchiveDir(indirname string, inclusions []string, exclusions []string) error {
 	_, err := assertValidDir(indirname)
 	if err != nil {
 		return err

@@ -33,7 +33,9 @@ func TestZipArchiver_File(t *testing.T) {
 func TestZipArchiver_Dir(t *testing.T) {
 	zipfilepath := "archive-dir.zip"
 	archiver := NewZipArchiver(zipfilepath)
-	if err := archiver.ArchiveDir("./test-fixtures/test-dir"); err != nil {
+	inclusions := []string{}
+	exclusions := []string{}
+	if err := archiver.ArchiveDir("./test-fixtures/test-dir", inclusions, exclusions); err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
