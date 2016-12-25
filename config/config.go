@@ -153,6 +153,7 @@ type Variable struct {
 	DeclaredType string `mapstructure:"type"`
 	Default      interface{}
 	Description  string
+	Sensitive    bool
 }
 
 // Output is an output defined within the configuration. An output is

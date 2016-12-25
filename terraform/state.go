@@ -81,6 +81,9 @@ type State struct {
 	// Modules contains all the modules in a breadth-first order
 	Modules []*ModuleState `json:"modules"`
 
+	// Variables contains all the variables that were set in a breadth-first order
+	Variables []*config.Variable `json:"variables"`
+
 	mu sync.Mutex
 }
 
@@ -1497,6 +1500,27 @@ func (s *ResourceState) String() string {
 	var buf bytes.Buffer
 	buf.WriteString(fmt.Sprintf("Type = %s", s.Type))
 	return buf.String()
+}
+
+// VariableState holds the state of a variable that is used so that
+//
+// Attributes has attributes about the created resource that are
+// queryable in interpolation: "${type.id.attr}"
+//
+type VariableState struct {
+	// Sensitive describes whether the variable is considered sensitive,
+	// which may lead to masking the value on screen in some cases.
+	Sensitive bool `json:"sensitive"`
+
+	// Type describes the structure of Value. Valid values are "string",
+	// "map" and "list"
+	Type string `json:"type"`
+
+	// Value contains the value of the variable, in the structure described
+	// by the Type field.
+	Value interface{} `json:"value"`
+
+	mu sync.Mutex
 }
 
 // InstanceState is used to track the unique state information belonging
