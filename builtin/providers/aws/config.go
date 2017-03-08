@@ -69,6 +69,7 @@ import (
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/terraform/helper/logging"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/aws/aws-sdk-go/service/cognitoidentity"
 )
 
 type Config struct {
@@ -110,6 +111,7 @@ type AWSClient struct {
 	cloudwatchconn        *cloudwatch.CloudWatch
 	cloudwatchlogsconn    *cloudwatchlogs.CloudWatchLogs
 	cloudwatcheventsconn  *cloudwatchevents.CloudWatchEvents
+	cognitoconn           *cognitoidentity.CognitoIdentity
 	configconn            *configservice.ConfigService
 	dmsconn               *databasemigrationservice.DatabaseMigrationService
 	dsconn                *directoryservice.DirectoryService
@@ -295,6 +297,7 @@ func (c *Config) Client() (interface{}, error) {
 	client.codebuildconn = codebuild.New(sess)
 	client.codedeployconn = codedeploy.New(sess)
 	client.configconn = configservice.New(sess)
+	client.cognitoconn = cognitoidentity.New(sess)
 	client.dmsconn = databasemigrationservice.New(sess)
 	client.codepipelineconn = codepipeline.New(sess)
 	client.dsconn = directoryservice.New(sess)
