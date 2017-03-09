@@ -40,6 +40,39 @@ func TestAccAWSCognitoIdentityPool_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSCognitoIdentityPool_supportedLoginProviders(t *testing.T) {
+	name := fmt.Sprintf("identity pool %s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCognitoIdentityPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCognitoIdentityPoolConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", name),
+				),
+			},
+			{
+				Config: testAccAWSCognitoIdentityPoolConfig_supportedLoginProviders(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", name),
+				),
+			},
+			{
+				Config: testAccAWSCognitoIdentityPoolConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", name),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckAWSCognitoIdentityPoolExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -93,6 +126,19 @@ func testAccAWSCognitoIdentityPoolConfig_basic(name string) string {
 resource "aws_cognito_identity_pool" "main" {
   identity_pool_name               = "%s"
   allow_unauthenticated_identities = false
+}
+`, name)
+}
+
+func testAccAWSCognitoIdentityPoolConfig_supportedLoginProviders(name string) string {
+	return fmt.Sprintf(`
+resource "aws_cognito_identity_pool" "main" {
+  identity_pool_name               = "%s"
+  allow_unauthenticated_identities = false
+
+  supported_login_providers {
+    "graph.facebook.com" = "7346241598935555"
+  }
 }
 `, name)
 }

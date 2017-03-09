@@ -24,9 +24,10 @@ func resourceAwsCognitoIdentityPool() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"identity_pool_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateCognitoIdentityPoolName,
 			},
 
 			"cognito_identity_providers": {
@@ -52,8 +53,9 @@ func resourceAwsCognitoIdentityPool() *schema.Resource {
 			},
 
 			"developer_provider_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateCognitoProviderDeveloperName,
 			},
 
 			"allow_unauthenticated_identities": {
@@ -91,6 +93,10 @@ func resourceAwsCognitoIdentityPoolCreate(d *schema.ResourceData, meta interface
 		AllowUnauthenticatedIdentities: aws.Bool(d.Get("allow_unauthenticated_identities").(bool)),
 	}
 
+	if v, ok := d.GetOk("supported_login_providers"); ok {
+		params.SupportedLoginProviders = expandCognitoSupportedLoginProviders(v.(map[string]interface{}))
+	}
+
 	entity, err := conn.CreateIdentityPool(params)
 	if err != nil {
 		return fmt.Errorf("Error creating Cognito Identity Pool: %s", err)
@@ -122,7 +128,7 @@ func resourceAwsCognitoIdentityPoolRead(d *schema.ResourceData, meta interface{}
 	d.Set("developer_provider_name", ip.DeveloperProviderName)
 	d.Set("openid_connect_provider_arns", ip.OpenIdConnectProviderARNs)
 	d.Set("saml_provider_arns", ip.SamlProviderARNs)
-	d.Set("supported_login_providers", ip.SupportedLoginProviders)
+	d.Set("supported_login_providers", flattenCognitoSupportedLoginProviders(ip.SupportedLoginProviders))
 
 	return nil
 }
@@ -137,9 +143,9 @@ func resourceAwsCognitoIdentityPoolUpdate(d *schema.ResourceData, meta interface
 		IdentityPoolName:               aws.String(d.Get("identity_pool_name").(string)),
 	}
 
-	//if d.HasChange("allow_unauthenticated_identities") {
-	//	params.
-	//}
+	if d.HasChange("supported_login_providers") {
+		params.SupportedLoginProviders = expandCognitoSupportedLoginProviders(d.Get("supported_login_providers").(map[string]interface{}))
+	}
 
 	_, err := conn.UpdateIdentityPool(params)
 	if err != nil {

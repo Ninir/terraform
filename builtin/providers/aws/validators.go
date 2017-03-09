@@ -931,6 +931,7 @@ func validateConfigExecutionFrequency(v interface{}, k string) (ws []string, err
 	return
 }
 
+
 func validateAccountAlias(v interface{}, k string) (ws []string, es []error) {
 	val := v.(string)
 
@@ -949,6 +950,16 @@ func validateAccountAlias(v interface{}, k string) (ws []string, es []error) {
 
 	return
 }
+
+func validateCognitoIdentityPoolName(v interface{}, k string) (ws []string, errors []error) {
+	val := v.(string)
+	if !regexp.MustCompile("^[\\w ]+$").MatchString(val) {
+		errors = append(errors, fmt.Errorf("%q must contain only alphanumeric caracters and spaces", k))
+	}
+
+	return
+}
+
 
 func validateIamRolePolicyName(v interface{}, k string) (ws []string, errors []error) {
 	// https://github.com/boto/botocore/blob/2485f5c/botocore/data/iam/2010-05-08/service-2.json#L8291-L8296
@@ -972,5 +983,14 @@ func validateIamRolePolicyNamePrefix(v interface{}, k string) (ws []string, erro
 	if !regexp.MustCompile("^[\\w+=,.@-]+$").MatchString(value) {
 		errors = append(errors, fmt.Errorf("%q must match [\\w+=,.@-]", k))
 	}
+	return
+}
+
+func validateCognitoProviderDeveloperName(v interface{}, k string) (ws []string, errors []error) {
+	val := v.(string)
+	if !regexp.MustCompile("^[\\w._-]+$").MatchString(val) {
+		errors = append(errors, fmt.Errorf("%q must contain only alphanumeric caracters, dots, underscores and hyphens", k))
+	}
+
 	return
 }

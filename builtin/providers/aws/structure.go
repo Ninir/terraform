@@ -1849,3 +1849,20 @@ func flattenInspectorTags(cfTags []*cloudformation.Tag) map[string]string {
 	}
 	return tags
 }
+
+func expandCognitoSupportedLoginProviders(config map[string]interface{}) map[string]*string {
+	m := map[string]*string{}
+	for k, v := range config {
+		s := v.(string)
+		m[k] = &s
+	}
+	return m
+}
+
+func flattenCognitoSupportedLoginProviders(config map[string]*string) map[string]string {
+	m := map[string]string{}
+	for k, v := range config {
+		m[k] = *v
+	}
+	return m
+}
