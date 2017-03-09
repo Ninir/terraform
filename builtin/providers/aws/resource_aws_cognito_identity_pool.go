@@ -16,6 +16,7 @@ func resourceAwsCognitoIdentityPool() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceAwsCognitoIdentityPoolCreate,
 		Read:   resourceAwsCognitoIdentityPoolRead,
+		Update: resourceAwsCognitoIdentityPoolUpdate,
 		Delete: resourceAwsCognitoIdentityPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -23,39 +24,59 @@ func resourceAwsCognitoIdentityPool() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"identity_pool_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"cognito_identity_providers": {
-				Type:         schema.TypeSet,
-				Optional:     true,
+				Type:     schema.TypeSet,
+				Optional: true,
+				//Set:      cognitoIdentityProvidersHash,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"client_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"provider_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"server_side_token_check": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
 			},
 
 			"developer_provider_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			"allow_unauthenticated_identities": {
-				Type: schema.TypeBool,
-				Optional: true,
+				Type:     schema.TypeBool,
+				Required: true,
 			},
 
 			"openid_connect_provider_arns": {
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"saml_provider_arns": {
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"supported_login_providers": {
-				Type: schema.TypeMap,
+				Type:     schema.TypeMap,
 				Optional: true,
+				Elem:     schema.TypeString,
 			},
 		},
 	}
@@ -66,17 +87,18 @@ func resourceAwsCognitoIdentityPoolCreate(d *schema.ResourceData, meta interface
 	log.Print("[DEBUG] Creating Cognito Identity Pool")
 
 	params := &cognitoidentity.CreateIdentityPoolInput{
-		IdentityPoolName: aws.String(d.Get("identity_pool_name").(string)),
+		IdentityPoolName:               aws.String(d.Get("identity_pool_name").(string)),
+		AllowUnauthenticatedIdentities: aws.Bool(d.Get("allow_unauthenticated_identities").(bool)),
 	}
 
-	activity, err := conn.CreateIdentityPool(params)
+	entity, err := conn.CreateIdentityPool(params)
 	if err != nil {
 		return fmt.Errorf("Error creating Cognito Identity Pool: %s", err)
 	}
 
-	d.SetId(*activity.IdentityPoolId)
+	d.SetId(*entity.IdentityPoolId)
 
-	return resourceAwsCognitoIdentityPoolRead(d, meta)
+	return resourceAwsCognitoIdentityPoolUpdate(d, meta)
 }
 
 func resourceAwsCognitoIdentityPoolRead(d *schema.ResourceData, meta interface{}) error {
@@ -87,7 +109,7 @@ func resourceAwsCognitoIdentityPoolRead(d *schema.ResourceData, meta interface{}
 		IdentityPoolId: aws.String(d.Id()),
 	})
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ActivityDoesNotExist" {
+		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "ResourceNotFoundException" {
 			d.SetId("")
 			return nil
 		}
@@ -103,6 +125,28 @@ func resourceAwsCognitoIdentityPoolRead(d *schema.ResourceData, meta interface{}
 	d.Set("supported_login_providers", ip.SupportedLoginProviders)
 
 	return nil
+}
+
+func resourceAwsCognitoIdentityPoolUpdate(d *schema.ResourceData, meta interface{}) error {
+	conn := meta.(*AWSClient).cognitoconn
+	log.Print("[DEBUG] Updating Cognito Identity Pool")
+
+	params := &cognitoidentity.IdentityPool{
+		IdentityPoolId:                 aws.String(d.Id()),
+		AllowUnauthenticatedIdentities: aws.Bool(d.Get("allow_unauthenticated_identities").(bool)),
+		IdentityPoolName:               aws.String(d.Get("identity_pool_name").(string)),
+	}
+
+	//if d.HasChange("allow_unauthenticated_identities") {
+	//	params.
+	//}
+
+	_, err := conn.UpdateIdentityPool(params)
+	if err != nil {
+		return fmt.Errorf("Error creating Cognito Identity Pool: %s", err)
+	}
+
+	return resourceAwsCognitoIdentityPoolRead(d, meta)
 }
 
 func resourceAwsCognitoIdentityPoolDelete(d *schema.ResourceData, meta interface{}) error {
