@@ -66,12 +66,14 @@ func resourceAwsCognitoIdentityPool() *schema.Resource {
 			"openid_connect_provider_arns": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"saml_provider_arns": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
@@ -126,8 +128,8 @@ func resourceAwsCognitoIdentityPoolRead(d *schema.ResourceData, meta interface{}
 	d.Set("allow_unauthenticated_identities", ip.AllowUnauthenticatedIdentities)
 	d.Set("cognito_identity_providers", ip.CognitoIdentityProviders)
 	d.Set("developer_provider_name", ip.DeveloperProviderName)
-	d.Set("openid_connect_provider_arns", ip.OpenIdConnectProviderARNs)
-	d.Set("saml_provider_arns", ip.SamlProviderARNs)
+	d.Set("openid_connect_provider_arns", flattenStringList(ip.OpenIdConnectProviderARNs))
+	d.Set("saml_provider_arns", flattenStringList(ip.SamlProviderARNs))
 	d.Set("supported_login_providers", flattenCognitoSupportedLoginProviders(ip.SupportedLoginProviders))
 
 	return nil
@@ -145,6 +147,19 @@ func resourceAwsCognitoIdentityPoolUpdate(d *schema.ResourceData, meta interface
 
 	if d.HasChange("supported_login_providers") {
 		params.SupportedLoginProviders = expandCognitoSupportedLoginProviders(d.Get("supported_login_providers").(map[string]interface{}))
+	}
+
+	if d.HasChange("openid_connect_provider_arns") {
+		if v := d.Get("openid_connect_provider_arns").([]interface{}); len(v) > 0 {
+			params.OpenIdConnectProviderARNs = expandStringList(v)
+		}
+	}
+
+	if d.HasChange("saml_provider_arns") {
+		v := d.Get("saml_provider_arns").([]interface{})
+		if len(v) == 1 { // Schema guarantees either 0 or 1
+			params.SamlProviderARNs = expandStringList(v)
+		}
 	}
 
 	_, err := conn.UpdateIdentityPool(params)

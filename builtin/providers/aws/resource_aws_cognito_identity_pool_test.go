@@ -14,8 +14,8 @@ import (
 )
 
 func TestAccAWSCognitoIdentityPool_basic(t *testing.T) {
-	name := fmt.Sprintf("identity pool %s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
-	updatedName := fmt.Sprintf("identity pool updated %s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := fmt.Sprintf("%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	updatedName := fmt.Sprintf("%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -26,14 +26,14 @@ func TestAccAWSCognitoIdentityPool_basic(t *testing.T) {
 				Config: testAccAWSCognitoIdentityPoolConfig_basic(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
-					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", name),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", fmt.Sprintf("identity pool %s", name)),
 				),
 			},
 			{
 				Config: testAccAWSCognitoIdentityPoolConfig_basic(updatedName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
-					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", updatedName),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", fmt.Sprintf("identity pool %s", updatedName)),
 				),
 			},
 		},
@@ -41,7 +41,7 @@ func TestAccAWSCognitoIdentityPool_basic(t *testing.T) {
 }
 
 func TestAccAWSCognitoIdentityPool_supportedLoginProviders(t *testing.T) {
-	name := fmt.Sprintf("identity pool %s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+	name := fmt.Sprintf("%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -52,21 +52,87 @@ func TestAccAWSCognitoIdentityPool_supportedLoginProviders(t *testing.T) {
 				Config: testAccAWSCognitoIdentityPoolConfig_basic(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
-					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", name),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", fmt.Sprintf("identity pool %s", name)),
 				),
 			},
 			{
 				Config: testAccAWSCognitoIdentityPoolConfig_supportedLoginProviders(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
-					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", name),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", fmt.Sprintf("identity pool %s", name)),
 				),
 			},
 			{
 				Config: testAccAWSCognitoIdentityPoolConfig_basic(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
-					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", name),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", fmt.Sprintf("identity pool %s", name)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSCognitoIdentityPool_openidConnectProviderArns(t *testing.T) {
+	name := fmt.Sprintf("%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCognitoIdentityPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCognitoIdentityPoolConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", fmt.Sprintf("identity pool %s", name)),
+				),
+			},
+			{
+				Config: testAccAWSCognitoIdentityPoolConfig_openidConnectProviderArns(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", fmt.Sprintf("identity pool %s", name)),
+				),
+			},
+			{
+				Config: testAccAWSCognitoIdentityPoolConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", fmt.Sprintf("identity pool %s", name)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAWSCognitoIdentityPool_samlProviderArns(t *testing.T) {
+	name := fmt.Sprintf("%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSCognitoIdentityPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSCognitoIdentityPoolConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", fmt.Sprintf("identity pool %s", name)),
+				),
+			},
+			{
+				Config: testAccAWSCognitoIdentityPoolConfig_samlProviderArns(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", fmt.Sprintf("identity pool %s", name)),
+				),
+			},
+			{
+				Config: testAccAWSCognitoIdentityPoolConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckAWSCognitoIdentityPoolExists("aws_cognito_identity_pool.main"),
+					resource.TestCheckResourceAttr("aws_cognito_identity_pool.main", "identity_pool_name", fmt.Sprintf("identity pool %s", name)),
 				),
 			},
 		},
@@ -124,7 +190,7 @@ func testAccCheckAWSCognitoIdentityPoolDestroy(s *terraform.State) error {
 func testAccAWSCognitoIdentityPoolConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "aws_cognito_identity_pool" "main" {
-  identity_pool_name               = "%s"
+  identity_pool_name               = "identity pool %s"
   allow_unauthenticated_identities = false
 }
 `, name)
@@ -133,7 +199,7 @@ resource "aws_cognito_identity_pool" "main" {
 func testAccAWSCognitoIdentityPoolConfig_supportedLoginProviders(name string) string {
 	return fmt.Sprintf(`
 resource "aws_cognito_identity_pool" "main" {
-  identity_pool_name               = "%s"
+  identity_pool_name               = "identity pool %s"
   allow_unauthenticated_identities = false
 
   supported_login_providers {
@@ -141,4 +207,31 @@ resource "aws_cognito_identity_pool" "main" {
   }
 }
 `, name)
+}
+
+func testAccAWSCognitoIdentityPoolConfig_openidConnectProviderArns(name string) string {
+	return fmt.Sprintf(`
+resource "aws_cognito_identity_pool" "main" {
+  identity_pool_name               = "identity pool %s"
+  allow_unauthenticated_identities = false
+
+  openid_connect_provider_arns = ["arn:aws:iam::123456789012:oidc-provider/server.example.com"]
+}
+`, name)
+}
+
+func testAccAWSCognitoIdentityPoolConfig_samlProviderArns(name string) string {
+	return fmt.Sprintf(`
+resource "aws_iam_saml_provider" "default" {
+  name                   = "myprovider-%s"
+  saml_metadata_document = "${file("./test-fixtures/saml-metadata.xml")}"
+}
+
+resource "aws_cognito_identity_pool" "main" {
+  identity_pool_name               = "identity pool %s"
+  allow_unauthenticated_identities = false
+
+  saml_provider_arns = ["${aws_iam_saml_provider.default.arn}"]
+}
+`, name, name)
 }
