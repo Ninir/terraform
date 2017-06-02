@@ -163,7 +163,7 @@ The supported built-in functions are:
     **This is not equivalent** of `base64encode(sha512(string))`
     since `sha512()` returns hexadecimal representation.
 
-  * `bcrypt(password, cost)` - Returns the Blowfish encrypted hash of the string 
+  * `bcrypt(password, cost)` - Returns the Blowfish encrypted hash of the string
     at the given cost. A default `cost` of 10 will be used if not provided.
 
   * `ceil(float)` - Returns the least integer value greater than or equal
@@ -217,6 +217,11 @@ The supported built-in functions are:
       This function only works on flat lists. Examples:
       * `element(aws_subnet.foo.*.id, count.index)`
       * `element(var.list_of_strings, 2)`
+
+  * `explode(list, size)` - Returns the `list` items chunked by `size`.
+      Examples:
+      * `list(aws_subnet.foo.*.id, 1)`: will outputs `[["id1"], ["id2"], ["id3"]]`
+      * `list(var.list_of_strings, 2)`: will outputs `[["id1", "id2"], ["id3", "id4"], ["id5"]`
 
   * `file(path)` - Reads the contents of a file into the string. Variables
       in this file are _not_ interpolated. The contents of the file are
